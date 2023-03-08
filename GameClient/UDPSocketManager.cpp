@@ -1,6 +1,6 @@
-#include "TCPSocketManager.h"
+#include "UDPSocketManager.h"
 
-sf::Socket::Status TCPSocketManager::Listen(unsigned short port, sf::IpAddress ip)
+sf::Socket::Status UDPSocketManager::Listen(unsigned short port, sf::IpAddress ip)
 {
     // Make the selector wait for data on any socket
     if (selector.wait())
@@ -9,7 +9,7 @@ sf::Socket::Status TCPSocketManager::Listen(unsigned short port, sf::IpAddress i
         if (selector.isReady(listener))
         {
             // The listener is ready: there is a pending connection
-            sf::TcpSocket* client = new sf::TcpSocket;
+            sf::UdpSocket* client = new sf::UdpSocket;
             if (listener.accept(*client) == sf::Socket::Done)
             {
                 // Add the new client to the clients list
@@ -30,9 +30,9 @@ sf::Socket::Status TCPSocketManager::Listen(unsigned short port, sf::IpAddress i
         else
         {
             // The listener socket is not ready, test all other sockets (the clients)
-            for (std::list<sf::TcpSocket*>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+            for (std::list<sf::UdpSocket*>::iterator it = sockets.begin(); it != sockets.end(); ++it)
             {
-                sf::TcpSocket& client = **it;
+                sf::UdpSocket& client = **it;
                 if (selector.isReady(client))
                 {
                     // The client has sent some data, we can receive it
@@ -50,12 +50,12 @@ sf::Socket::Status TCPSocketManager::Listen(unsigned short port, sf::IpAddress i
 }
 
 
-void TCPSocketManager::ServerSend(std::string message, sf::TcpSocket& senderSocket)
+void UDPSocketManager::ServerSend(std::string message, sf::UdpSocket& senderSocket)
 {
     sf::Packet packet;
     packet << message;
 
-    for each (sf::TcpSocket* targetSocket in sockets)
+    for each (sf::UdpSocket * targetSocket in sockets)
     {
         if (targetSocket != &senderSocket)
         {
@@ -73,7 +73,7 @@ void TCPSocketManager::ServerSend(std::string message, sf::TcpSocket& senderSock
     packet.clear();
 }
 
-void TCPSocketManager::ServerSendAll(std::string message)
+void UDPSocketManager::ServerSendAll(std::string message)
 {
     sf::Packet packet;
     packet << message;
@@ -84,7 +84,7 @@ void TCPSocketManager::ServerSendAll(std::string message)
         Disconnect();
     }
 
-    for each (sf::TcpSocket * targetSocket in sockets)
+    for each (sf::UdpSocket * targetSocket in sockets)
     {
         sf::Socket::Status status = targetSocket->send(packet);
         std::cout << "Message sent: " << message << std::endl;
@@ -99,9 +99,9 @@ void TCPSocketManager::ServerSendAll(std::string message)
     packet.clear();
 }
 
-void TCPSocketManager::ClientSend(sf::Packet infoPack)
+void UDPSocketManager::ClientSend(sf::Packet infoPack)
 {
-    for each (sf::TcpSocket* targetSocket in sockets)
+    for each (sf::UdpSocket * targetSocket in sockets)
     {
         sf::Socket::Status status = targetSocket->send(infoPack);
         if (status != sf::Socket::Status::Done)
@@ -115,7 +115,7 @@ void TCPSocketManager::ClientSend(sf::Packet infoPack)
     infoPack.clear();
 }
 
-void TCPSocketManager::ServerReceive(sf::Packet receivedPacket, sf::TcpSocket& senderSocket)
+void UDPSocketManager::ServerReceive(sf::Packet receivedPacket, sf::UdpSocket& senderSocket)
 {
     //auto findResult;
     int tempMode;
@@ -125,11 +125,11 @@ void TCPSocketManager::ServerReceive(sf::Packet receivedPacket, sf::TcpSocket& s
 
     switch (tempMode)
     {
-    case TCPSocketManager::LOGIN:
+    case UDPSocketManager::LOGIN:
         usernames.push_back(tempUsername);
         std::cout << "New username: " << tempUsername << std::endl;
         break;
-    case TCPSocketManager::MESSAGE:
+    case UDPSocketManager::MESSAGE:
         if (tempMssg.size() > 0)
         {
             if (tempMssg == "exit")
@@ -143,7 +143,7 @@ void TCPSocketManager::ServerReceive(sf::Packet receivedPacket, sf::TcpSocket& s
             ServerSend(tempUsername + " - " + tempMssg, senderSocket);
         }
         break;
-    case TCPSocketManager::DISCONNECT:
+    case UDPSocketManager::DISCONNECT:
         ClientDisconected(tempUsername, senderSocket);
         break;
     default:
@@ -151,10 +151,10 @@ void TCPSocketManager::ServerReceive(sf::Packet receivedPacket, sf::TcpSocket& s
     }
 }
 
-void TCPSocketManager::ClientReceive(std::string* mssg)
+void UDPSocketManager::ClientReceive(std::string* mssg)
 {
     sf::Packet packet;
-    sf::TcpSocket* socket = *sockets.begin();
+    sf::UdpSocket* socket = *sockets.begin();
 
     sf::Socket::Status status = socket->receive(packet);
     if (status != sf::Socket::Status::Done)
@@ -179,9 +179,9 @@ void TCPSocketManager::ClientReceive(std::string* mssg)
     }
 }
 
-sf::Socket::Status TCPSocketManager::Connect(unsigned short port, sf::IpAddress ip)
+sf::Socket::Status UDPSocketManager::Connect(unsigned short port, sf::IpAddress ip)
 {
-    sf::TcpSocket* server = new sf::TcpSocket;
+    sf::UdpSocket* server = new sf::UdpSocket;
     sockets.push_back(server);
 
     sf::Socket::Status status = (*sockets.begin())->connect(ip, port, sf::seconds(5.f));
@@ -194,7 +194,7 @@ sf::Socket::Status TCPSocketManager::Connect(unsigned short port, sf::IpAddress 
     return status;
 }
 
-void TCPSocketManager::ClientDisconected(std::string username, sf::TcpSocket& clientSocket)
+void UDPSocketManager::ClientDisconected(std::string username, sf::UdpSocket& clientSocket)
 {
     auto findUsername = std::find(usernames.begin(), usernames.end(), username);
     if (findUsername != usernames.end())
@@ -204,28 +204,26 @@ void TCPSocketManager::ClientDisconected(std::string username, sf::TcpSocket& cl
 
     //sockets.remove(&clientSocket); // <-- Peta :(
 
-    users.erase(username);
-
     std::cout << username << " disconected" << std::endl;
 }
 
-void TCPSocketManager::Disconnect()
+void UDPSocketManager::Disconnect()
 {
     listener.close();
 
-    for each (sf::TcpSocket* socket in sockets)
+    for each (sf::UdpSocket* socket in sockets)
     {
         socket->disconnect();
     }
 }
 
-void TCPSocketManager::AddListener(unsigned short port)
+void UDPSocketManager::AddListener(unsigned short port)
 {
     listener.listen(port);
     selector.add(listener);
 }
 
-sf::TcpSocket* TCPSocketManager::GetSocket()
+sf::UdpSocket* UDPSocketManager::GetSocket()
 {
     return *sockets.begin();
 }

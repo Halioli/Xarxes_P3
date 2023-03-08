@@ -191,8 +191,10 @@ void ChessBoard::run()
                                 }
                             }
                             int counter = 0;
-                            for (int i = 0; i < 8; ++i) {
-                                for (int j = 0; j < 8; ++j) {
+                            for (int i = 0; i < 8; ++i) 
+                            {
+                                for (int j = 0; j < 8; ++j) 
+                                {
                                     if ((i + j) % 2 == 0)
                                         rectangle[counter].setFillColor(sf::Color::White);
                                     else

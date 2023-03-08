@@ -5,7 +5,7 @@
 #include <SFML\Network.hpp>
 #include <string>
 #include <thread>
-#include "TCPSocketManager.h"
+#include "UDPSocketManager.h"	
 #include "ChessBoard.h"
 
 using namespace sf;
@@ -35,7 +35,7 @@ void GetLineFromCin(std::string* mssg)
 	}
 }
 
-void OpenReceiveThread(TCPSocketManager* _tcpSocketManager, std::string* _mssg)
+void OpenReceiveThread(UDPSocketManager* _tcpSocketManager, std::string* _mssg)
 {
 	while (applicationRunning)
 	{
@@ -43,7 +43,7 @@ void OpenReceiveThread(TCPSocketManager* _tcpSocketManager, std::string* _mssg)
 	}
 }
 
-void OpenListener(TCPSocketManager* _tcpSocketManager)
+void OpenListener(UDPSocketManager* _tcpSocketManager)
 {
 	_tcpSocketManager->AddListener(PORT);
 
@@ -53,7 +53,7 @@ void OpenListener(TCPSocketManager* _tcpSocketManager)
 	}
 }
 
-bool SendLogic(TCPSocketManager* tcpSocketManager, Mode mode, sf::Packet mssgInfo, std::string* message)
+bool SendLogic(UDPSocketManager* tcpSocketManager, Mode mode, sf::Packet mssgInfo, std::string* message)
 {
 	if (message->size() > 0)
 	{
@@ -108,21 +108,19 @@ bool SendLogic(TCPSocketManager* tcpSocketManager, Mode mode, sf::Packet mssgInf
 	return true;
 }
 
-void Server()
+void ClientOne()
 {
-	std::cout << "Server mode running" << std::endl;
+	std::cout << "Connecting to another client..." << std::endl;
 
-	TCPSocketManager tcpSocketManager;
+	UDPSocketManager tcpSocketManager;
 
 	sf::Packet infoPacket;
 	std::string sendMessage, receiveMessage;
 
-	// Logic for receiving
-	std::thread tcpScoketListen(OpenListener, &tcpSocketManager);
-	tcpScoketListen.detach();
-
-	std::thread getLines(GetLineFromCin, &sendMessage);
-	getLines.detach();
+	//while (notConnected)
+	//{
+	//	// Send message to port
+	//}
 
 	while (applicationRunning)
 	{
@@ -136,11 +134,11 @@ void Server()
 	tcpSocketManager.Disconnect();
 }
 
-void Client()
+void ClientTwo()
 {
 	std::cout << "Client mode running" << std::endl;
 
-	TCPSocketManager tcpSocketManager;
+	UDPSocketManager tcpSocketManager;
 
 	// client connect
 	sf::Socket::Status status = tcpSocketManager.Connect(PORT, IP);
@@ -187,11 +185,11 @@ void main()
 
 	if (server_mode == 1)
 	{
-		Server();
+		ClientOne();
 	}
 	else if (server_mode == 2)
 	{
-		Client();
+		ClientTwo();
 	}
 
 	ChessBoard graphics;

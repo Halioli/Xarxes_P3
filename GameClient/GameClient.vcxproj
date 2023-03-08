@@ -158,12 +158,12 @@
     <ClCompile Include="ChessBoard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pieces.cpp" />
-    <ClCompile Include="TCPSocketManager.cpp" />
+    <ClCompile Include="UDPSocketManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChessBoard.h" />
     <ClInclude Include="pieces.h" />
-    <ClInclude Include="TCPSocketManager.h" />
+    <ClInclude Include="UDPSocketManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

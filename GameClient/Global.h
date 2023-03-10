@@ -1,0 +1,9 @@
+#pragma once
+#include <SFML/Graphics.hpp>
+#include <SFML\Network.hpp>
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <thread>
+#include <string>
+#include <list>

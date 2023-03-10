@@ -82,7 +82,7 @@ void ChessBoard::loadboard(Texture texture[64], RectangleShape rectangle[64], Sp
     }
 }
 
-void ChessBoard::run()
+void ChessBoard::run(bool isWhite)
 {
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGTH), "Chess The Game Of Kings!");
     sf::RectangleShape rectangle[64];
@@ -115,37 +115,47 @@ void ChessBoard::run()
             }
             if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) 
             {
-                // Black pieces turn
-                for (int j = 0; j < 64; ++j) 
+                if (!isWhite)
                 {
-                    if (turn % 2 == 0 & board_2[j] < 0) 
+                    // Black pieces turn
+                    for (int j = 0; j < 64; ++j)
                     {
-                        if (rectangle[j].getGlobalBounds().contains(pos.x, pos.y))
+                        if (turn % 2 == 0 && board_2[j] < 0)
                         {
-                            n = j;
-                            firstpos = rectangle[j].getPosition();
-                            v = spritepositions[j];
-                            rectangle[n].setFillColor(sf::Color::Red);
-                            if (spritepositions[n] != 64)
-                                cap++;
+                            if (rectangle[j].getGlobalBounds().contains(pos.x, pos.y))
+                            {
+                                n = j;
+                                firstpos = rectangle[j].getPosition();
+                                v = spritepositions[j];
+                                rectangle[n].setFillColor(sf::Color::Red);
+                                if (spritepositions[n] != 64)
+                                    cap++;
+                            }
                         }
                     }
+
+                    //WAIT FOR RECEIVE MOVE
                 }
-                // White pieces turn
-                for (int j = 0; j < 64; ++j) 
+                else
                 {
-                    if (turn % 2 != 0 & board_2[j] > 0) 
+                    // White pieces turn
+                    for (int j = 0; j < 64; ++j)
                     {
-                        if (rectangle[j].getGlobalBounds().contains(pos.x, pos.y))
+                        if (turn % 2 != 0 && board_2[j] > 0)
                         {
-                            n = j;
-                            firstpos = rectangle[j].getPosition();
-                            v = spritepositions[j];
-                            rectangle[n].setFillColor(sf::Color::Red);
-                            if (spritepositions[n] != 64)
-                                cap++;
+                            if (rectangle[j].getGlobalBounds().contains(pos.x, pos.y))
+                            {
+                                n = j;
+                                firstpos = rectangle[j].getPosition();
+                                v = spritepositions[j];
+                                rectangle[n].setFillColor(sf::Color::Red);
+                                if (spritepositions[n] != 64)
+                                    cap++;
+                            }
                         }
                     }
+
+                    //WAIT FOR RECEIVE MOVE
                 }
 
             }
@@ -174,11 +184,11 @@ void ChessBoard::run()
                                     {
                                         window.close();
                                     }
-                                    if (j <= 63 & j >= 56 & board_2[n] == -6) 
+                                    if (j <= 63 && j >= 56 && board_2[n] == -6)
                                     {
                                         board_2[j] = -4;
                                     }
-                                    else if (j >= 0 & j <= 7 & board_2[n] == 6) 
+                                    else if (j >= 0 && j <= 7 && board_2[n] == 6)
                                     {
                                         board_2[j] = 4;
                                     }
@@ -191,8 +201,10 @@ void ChessBoard::run()
                                 }
                             }
                             int counter = 0;
-                            for (int i = 0; i < 8; ++i) {
-                                for (int j = 0; j < 8; ++j) {
+                            for (int i = 0; i < 8; ++i) 
+                            {
+                                for (int j = 0; j < 8; ++j) 
+                                {
                                     if ((i + j) % 2 == 0)
                                         rectangle[counter].setFillColor(sf::Color::White);
                                     else
@@ -214,7 +226,8 @@ void ChessBoard::run()
         window.clear();
         for (int j = 0; j < 64; ++j)
             window.draw(rectangle[j]);
-        for (int j = 0; j < 65; j++) {
+        for (int j = 0; j < 65; j++) 
+        {
             if (q[j] == 64)
                 window.draw(sprite[j]);
         }

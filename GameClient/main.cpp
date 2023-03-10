@@ -1,10 +1,5 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include <iostream>
-#include <fstream>
-#include <SFML\Network.hpp>
-#include <string>
-#include <thread>
+#include "Global.h"
 #include "TCPSocketManager.h"
 #include "ChessBoard.h"
 
@@ -13,6 +8,7 @@ using namespace sf;
 const unsigned short PORT = 5555;
 const sf::IpAddress IP = "127.0.0.1";
 bool applicationRunning = true;
+bool gameStart = false;
 
 enum Mode
 {
@@ -20,9 +16,6 @@ enum Mode
 	CLIENT,
 	COUNT
 };
-
-std::string username;
-bool hasLogedIn = false;
 
 // Function to read from console (adapted for threads)
 void GetLineFromCin(std::string* mssg)
@@ -67,7 +60,7 @@ bool SendLogic(TCPSocketManager* tcpSocketManager, Mode mode, sf::Packet mssgInf
 				break;
 			case CLIENT:
 				std::cout << "CLIENT DISCONECT" << std::endl;
-				mssgInfo << tcpSocketManager->DISCONNECT << username << *message;
+				mssgInfo << tcpSocketManager->DISCONNECT << *message;
 				tcpSocketManager->ClientSend(mssgInfo);
 				break;
 			default:
@@ -86,16 +79,7 @@ bool SendLogic(TCPSocketManager* tcpSocketManager, Mode mode, sf::Packet mssgInf
 				tcpSocketManager->ServerSendAll(*message);
 				break;
 			case CLIENT:
-				if (!hasLogedIn)
-				{
-					username = *message;
-					hasLogedIn = true;
-					mssgInfo << tcpSocketManager->LOGIN << username << *message;
-				}
-				else
-				{
-					mssgInfo << tcpSocketManager->MESSAGE << username << *message;
-				}
+				mssgInfo << tcpSocketManager->MESSAGE << *message;
 				tcpSocketManager->ClientSend(mssgInfo);
 				break;
 			default:
@@ -110,9 +94,9 @@ bool SendLogic(TCPSocketManager* tcpSocketManager, Mode mode, sf::Packet mssgInf
 
 void Server()
 {
-	std::cout << "Server mode running" << std::endl;
+	std::cout << "Client 2 mode running" << std::endl;
 
-	TCPSocketManager tcpSocketManager;
+	TCPSocketManager tcpSocketManager(&gameStart);
 
 	sf::Packet infoPacket;
 	std::string sendMessage, receiveMessage;
@@ -138,9 +122,9 @@ void Server()
 
 void Client()
 {
-	std::cout << "Client mode running" << std::endl;
+	std::cout << "Client 1 mode running" << std::endl;
 
-	TCPSocketManager tcpSocketManager;
+	TCPSocketManager tcpSocketManager(&gameStart);
 
 	// client connect
 	sf::Socket::Status status = tcpSocketManager.Connect(PORT, IP);
@@ -154,8 +138,6 @@ void Client()
 
 	std::thread getLines(GetLineFromCin, &sendMessage);
 	getLines.detach();
-
-	std::cout << "Input your username:" << std::endl;
 
 	while (applicationRunning)
 	{
@@ -181,19 +163,28 @@ void main()
 {
 	int server_mode;
 	std::string mode_str;
-	std::cout << "Select a mode: (1) cliente-1, (2) cliente-2" << std::endl;
+	std::cout << "Select a mode: (1) client-1, (2) client-2" << std::endl;
 	std::cin >> mode_str;
 	server_mode = std::stoi(mode_str);
+	bool facistPieces;
 
 	if (server_mode == 1)
 	{
-		Server();
+		std::thread clientThread(Client);
+		clientThread.detach();
+		facistPieces = true;
 	}
 	else if (server_mode == 2)
 	{
-		Client();
+		std::thread serverThread(Server);
+		serverThread.detach();
+		facistPieces = false;
 	}
 
+	while (!gameStart)
+	{
+		Sleep(100);
+	}
 	ChessBoard graphics;
-	graphics.run();
+	graphics.run(facistPieces);
 }

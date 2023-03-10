@@ -15,6 +15,6 @@ class ChessBoard{
   public:
     void loadtextures(Texture texture[64]);
     void loadboard(Texture texture[64],RectangleShape rectangle[64],Sprite sprite[64]);
-    void run();
+    void run(bool isWhite);
   
 };

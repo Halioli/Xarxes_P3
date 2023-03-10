@@ -1,5 +1,10 @@
 #include "TCPSocketManager.h"
 
+TCPSocketManager::TCPSocketManager(bool* _gameStart)
+{
+    gameStart = _gameStart;
+}
+
 sf::Socket::Status TCPSocketManager::Listen(unsigned short port, sf::IpAddress ip)
 {
     // Make the selector wait for data on any socket
@@ -20,6 +25,10 @@ sf::Socket::Status TCPSocketManager::Listen(unsigned short port, sf::IpAddress i
                 selector.add(*client);
 
                 std::cout << "Added client" << std::endl;
+
+                Sleep(100);
+                ServerSendAll("WELCOME");
+                *gameStart = true;
             }
             else
             {
@@ -119,32 +128,31 @@ void TCPSocketManager::ServerReceive(sf::Packet receivedPacket, sf::TcpSocket& s
 {
     //auto findResult;
     int tempMode;
-    std::string tempUsername;
     std::string tempMssg;
-    receivedPacket >> tempMode >> tempUsername >> tempMssg;
+    receivedPacket >> tempMode  >> tempMssg;
 
     switch (tempMode)
     {
     case TCPSocketManager::LOGIN:
-        usernames.push_back(tempUsername);
-        std::cout << "New username: " << tempUsername << std::endl;
+        //usernames.push_back(tempUsername);
+        //std::cout << "New username: " << tempUsername << std::endl;
         break;
     case TCPSocketManager::MESSAGE:
         if (tempMssg.size() > 0)
         {
             if (tempMssg == "exit")
             {
-                ClientDisconected(tempUsername, senderSocket);
+                ClientDisconected(senderSocket);
                 return;
             }
             std::cout << "Received message: " << tempMssg << std::endl;
 
             // Send received message to all clients
-            ServerSend(tempUsername + " - " + tempMssg, senderSocket);
+            ServerSend(tempMssg, senderSocket);
         }
         break;
     case TCPSocketManager::DISCONNECT:
-        ClientDisconected(tempUsername, senderSocket);
+        ClientDisconected(senderSocket);
         break;
     default:
         break;
@@ -174,6 +182,11 @@ void TCPSocketManager::ClientReceive(std::string* mssg)
             // Manages the desconection
             Disconnect();
         }
+        else if (masaje == "WELCOME")
+        {
+            // Enable game
+            *gameStart = true;
+        }
         std::cout << "Received message: " << masaje << std::endl;
         mssg->assign(masaje);
     }
@@ -194,19 +207,11 @@ sf::Socket::Status TCPSocketManager::Connect(unsigned short port, sf::IpAddress 
     return status;
 }
 
-void TCPSocketManager::ClientDisconected(std::string username, sf::TcpSocket& clientSocket)
+void TCPSocketManager::ClientDisconected(sf::TcpSocket& clientSocket)
 {
-    auto findUsername = std::find(usernames.begin(), usernames.end(), username);
-    if (findUsername != usernames.end())
-    {
-        usernames.erase(findUsername);
-    }
-
     //sockets.remove(&clientSocket); // <-- Peta :(
 
-    users.erase(username);
-
-    std::cout << username << " disconected" << std::endl;
+    std::cout << "user disconected" << std::endl;
 }
 
 void TCPSocketManager::Disconnect()

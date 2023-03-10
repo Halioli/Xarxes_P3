@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChessBoard.h" />
+    <ClInclude Include="Global.h" />
     <ClInclude Include="pieces.h" />
     <ClInclude Include="UDPSocketManager.h" />
   </ItemGroup>
